@@ -1,0 +1,178 @@
+---
+title: "Homework 4"
+author: "Milo Tkacik"
+date: "2024-02-19"
+output: html_document
+---
+Milo Tkacik
+mat6226
+
+
+```{r echo=FALSE}
+#Librarying and Reading data
+library(rvest)
+library(sas7bdat)
+library(tibble)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(lubridate)
+library(knitr)
+library(mosaic)
+library(boot)
+
+prices <- read.csv("gasprices.csv")
+ebay <- read.csv("ebay.csv")
+nbc <- read.csv("nbc_pilotsurvey.csv")
+sclass <- read.csv("sclass.csv")
+```
+
+###Problem 1
+```{r echo=FALSE}
+#Finding average price for gas stations with and without competitors
+competition = prices %>%
+  group_by(Competitors) %>%
+  summarize(Average_Price = round(mean(Price), 2))
+diffmean(Average_Price ~ Competitors,
+data=competition)
+
+#Specifying for tibble
+competition <- competition %>%
+  mutate(Competitors = case_when(
+    Competitors == "Y" ~ "Yes",
+    Competitors == "N" ~ "No"))
+#Tibble for price to competitors comparison
+competition_tibble <- as_tibble(competition)
+print(competition_tibble)
+
+#Bootstrapping
+boot_competition = do(10000)*mean(~Average_Price, data=mosaic::resample(competition))
+#Histogram
+ggplot(boot_competition) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_competition, level=0.95)
+```
+
+```{r echo=FALSE}
+#Income to Prices
+income = prices %>%
+  group_by(Income) %>%
+  summarize(Average_Price = round(mean(Price), 2))
+
+#Tibble
+income_tibble <- as_tibble(income)
+print(income_tibble)
+
+#Bootstrapping
+boot_income = do(10000)*mean(~Average_Price, data=mosaic::resample(income))
+#Histogram
+ggplot(boot_income) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_income, level=0.95)
+```
+
+```{r echo=FALSE}
+#Stoplights and Prices
+stoplights = prices %>%
+  group_by(Stoplight) %>%
+  summarize(Average_Price = round(mean(Price), 2))
+
+#Easier to Read
+stoplights <- stoplights %>%
+  mutate(Stoplight = case_when(
+    Stoplight == "Y" ~ "Yes",
+    Stoplight == "N" ~ "No"))
+
+#Tibble
+stoplights_tibble <- as_tibble(stoplights)
+print(stoplights_tibble)
+
+#Bootstrapping
+boot_stoplights = do(10000)*mean(~Average_Price, data=mosaic::resample(stoplights))
+#Histogram
+ggplot(boot_stoplights) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_stoplights, level=0.95)
+```
+
+```{r echo=FALSE}
+#Highway Access and Prices
+highway = prices %>%
+  group_by(Highway) %>%
+  summarize(Average_Price = round(mean(Price), 2))
+
+#Easier to Read
+highway <- highway %>%
+  mutate(Highway = case_when(
+    Highway == "Y" ~ "Yes",
+    Highway == "N" ~ "No"))
+
+#Tibble
+highway_tibble <- as_tibble(highway)
+print(highway_tibble)
+
+#Bootstrapping
+boot_highway = do(10000)*mean(~Average_Price, data=mosaic::resample(highway))
+#Histogram
+ggplot(boot_highway) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_highway, level=0.95)
+```
+
+```{r echo=FALSE}
+#Shell Brand and Prices
+brand = prices %>%
+  group_by(Brand) %>%
+  summarize(Average_Price = round(mean(Price), 2))
+
+#Grouping nonshell brands
+brand <- brand %>%
+  mutate(Brand = case_when(
+    Brand != "Shell" ~ "Not_Shell"))
+
+#Tibble
+brand_tibble <- as_tibble(brand)
+print(brand_tibble)
+
+#Bootstrapping
+boot_brand = do(10000)*mean(~Average_Price, data=mosaic::resample(brand))
+#Histogram
+ggplot(boot_brand) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_brand, level=0.95)
+```
+
+###Problem 2
+```{r echo=FALSE}
+#2011 cars with 63 AMG
+sclass_2011 <- sclass %>%
+  filter(year %in% c(
+    '2011'
+    ))
+sclass_2011 <- sclass_2011 %>%
+  filter(trim %in% c(
+    '63 AMG'
+  ))
+#Averaging mileage
+mileage = sclass_2011 %>%
+  group_by(trim) %>%
+  summarize(Average_mileage = round(mean(mileage), 2))
+#Bootstrapping
+boot_mileage = do(10000)*round(mean(~Average_mileage, data=mosaic::resample(mileage), 2))
+#Histogram
+ggplot(boot_mileage) + 
+  geom_histogram(aes(x=mean))
+#Confidence Interval
+confint(boot_mileage, level=0.95)
+```
+
+```{r echo=FALSE}
+
+```
+
